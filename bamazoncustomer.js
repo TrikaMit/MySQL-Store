@@ -22,7 +22,7 @@ var productId;
 var productNumber;
 var productName = '';
 var productPrice;
-var stockQuantity; 
+var stockQuantity;
 
 function displayItems() {
     connection.query("SELECT id, product_name, department_name, product_price, stock_quantity FROM products_stock", function (err, res) {
@@ -59,20 +59,36 @@ function numberProduct() {
             stockQuantity = res[0].stock_quantity;
             checkStock();
             console.log(stockQuantity + " units of " + productName + " remaining.");
-            connection.end();
-            
+            buyAgain();
         })
     })
 }
-function checkStock(){
+
+function checkStock() {
     console.log("You are trying to buy " + productNumber + " units of " + productName + " at a price of $" + productPrice + " and we currently have " + stockQuantity + " in stock.");
-    if (stockQuantity >= productNumber){
+    if (stockQuantity >= productNumber) {
         console.log("Congratulations! We have fulfilled your order. Your total is: $" + productPrice * productNumber + ". Enjoy your new items.");
         stockQuantity -= productNumber;
-        connection.query("UPDATE products_stock SET stock_quantity = " + stockQuantity + " where id = " + productId, function(err,res){
+        connection.query("UPDATE products_stock SET stock_quantity = " + stockQuantity + " where id = " + productId, function (err, res) {
             if (err) throw err;
         });
-    }else{
+    } else {
         console.log("Sorry, we don't have enough of that product in stock.")
     }
+}
+
+function buyAgain() {
+    inquirer.prompt([{
+        type: "confirm",
+        name: "buyAgain",
+        message: "Would you like to buy more products?",
+        default: "boolean"
+    }]).then(function (user) {
+        if (user.buyAgain) {
+            displayItems();
+        } else {
+            console.log("Ok, thanks for shopping!")
+            connection.end();
+        }
+    })
 }
